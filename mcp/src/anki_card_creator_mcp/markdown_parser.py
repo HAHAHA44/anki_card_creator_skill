@@ -5,8 +5,7 @@ from anki_card_creator_mcp.models import CardRow, DeckSpec
 
 REQUIRED_HEADINGS = (
     "## Deck Metadata",
-    "## Card Policy",
-    "## Field Schema",
+    "## Card Layout",
     "## Cards",
 )
 
@@ -16,17 +15,19 @@ def parse_deck_spec(path: Path) -> DeckSpec:
     sections = _split_sections(lines)
 
     metadata = _parse_key_value_bullets(sections["## Deck Metadata"])
-    policy = _parse_key_value_bullets(sections["## Card Policy"])
+    layout = _parse_key_value_bullets(sections["## Card Layout"])
     cards = _parse_cards_table(sections["## Cards"])
+
+    front_layout = [f.strip() for f in layout.get("front_layout", "").split(",") if f.strip()]
+    back_layout = [f.strip() for f in layout.get("back_layout", "").split(",") if f.strip()]
 
     return DeckSpec(
         deck_name=metadata["deck_name"],
         source_mode=metadata["source_mode"],
-        card_type=metadata["card_type"],
         output_file=metadata["output_file"],
-        style_profile=policy["style_profile"],
-        strict_precise_mode=policy["strict_precise_mode"].lower() == "true",
-        generation_notes=policy.get("generation_notes", ""),
+        front_layout=front_layout,
+        back_layout=back_layout,
+        generation_notes=layout.get("generation_notes", ""),
         cards=cards,
     )
 
@@ -75,7 +76,6 @@ def _parse_cards_table(lines: list[str]) -> list[CardRow]:
         cards.append(
             CardRow(
                 id=row.get("id", ""),
-                note_type=row.get("note_type", ""),
                 front=row.get("front", ""),
                 back=row.get("back", ""),
                 context=row.get("context", ""),

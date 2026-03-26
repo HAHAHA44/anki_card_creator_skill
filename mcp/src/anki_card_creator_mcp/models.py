@@ -4,7 +4,6 @@ from dataclasses import dataclass
 @dataclass
 class CardRow:
     id: str
-    note_type: str
     front: str
     back: str
     context: str = ""
@@ -17,9 +16,8 @@ class CardRow:
 class DeckSpec:
     deck_name: str
     source_mode: str
-    card_type: str
     output_file: str
-    style_profile: str
-    strict_precise_mode: bool
+    front_layout: list[str]
+    back_layout: list[str]
     generation_notes: str
     cards: list[CardRow]
