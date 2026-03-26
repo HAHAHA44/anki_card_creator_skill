@@ -31,3 +31,13 @@ def test_field_names_unchanged() -> None:
         "Example",
         "Extra",
     ]
+
+
+def test_answer_side_css_owns_separator_and_background_continuity() -> None:
+    model = get_note_model(
+        front_layout=["context", "front", "example", "extra"],
+        back_layout=["back"],
+    )
+
+    assert "#answer {" in model.css
+    assert "background-attachment: fixed;" in model.css

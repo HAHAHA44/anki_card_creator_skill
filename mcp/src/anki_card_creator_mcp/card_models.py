@@ -20,12 +20,103 @@ FIELD_RENDERERS = {
 }
 
 DEFAULT_CSS = """
-.card { font-family: sans-serif; font-size: 16px; text-align: left; }
-.context-block { color: #666; font-size: 0.85em; margin-bottom: 0.5em; }
-.front-block { font-weight: bold; margin-bottom: 0.5em; }
-.back-block { margin-top: 0.5em; }
-.example-block { color: #444; font-style: italic; margin-top: 0.5em; }
-.extra-block { color: #555; font-size: 0.9em; margin-top: 0.5em; }
+.card {
+  --card-bg: linear-gradient(180deg, #f4efe6 0%, #fcfaf6 100%);
+  --card-surface: rgba(255, 255, 255, 0.84);
+  --card-text: #18212f;
+  --card-muted: #6b7280;
+  --card-accent: #0f766e;
+  --card-border: rgba(24, 33, 47, 0.08);
+  font-family: Inter, "SF Pro Text", "Segoe UI", "PingFang SC", "Hiragino Sans",
+    "Hiragino Kaku Gothic ProN", "Microsoft YaHei", "Noto Sans CJK SC",
+    "Noto Sans CJK JP", "Yu Gothic UI", Meiryo, sans-serif;
+  font-size: 18px;
+  line-height: 1.65;
+  text-align: left;
+  color: var(--card-text);
+  background-color: #fcfaf6;
+  background-image: var(--card-bg);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  background-attachment: fixed;
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 24px 22px;
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+  box-sizing: border-box;
+  min-height: 100vh;
+}
+
+.context-block {
+  margin-bottom: 14px;
+  color: var(--card-accent);
+  font-size: 0.72em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.front-block,
+.back-block,
+.example-block,
+.extra-block {
+  margin-top: 0;
+}
+
+.front-block {
+  margin-bottom: 12px;
+  font-size: 1.32em;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+.back-block {
+  margin-top: 18px;
+  font-size: 1.02em;
+}
+
+#answer {
+  border: 0;
+  height: 1px;
+  margin: 20px 0 0;
+  background: linear-gradient(90deg, rgba(15, 118, 110, 0), rgba(15, 118, 110, 0.32), rgba(15, 118, 110, 0));
+}
+
+.example-block,
+.extra-block {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--card-surface);
+  border: 1px solid rgba(24, 33, 47, 0.06);
+}
+
+.example-block {
+  margin-top: 16px;
+  color: #334155;
+  font-size: 0.94em;
+  font-style: italic;
+}
+
+.extra-block {
+  margin-top: 12px;
+  color: var(--card-muted);
+  font-size: 0.9em;
+}
+
+@media (max-width: 480px) {
+  .card {
+    font-size: 16px;
+    padding: 18px 16px;
+    border-radius: 16px;
+  }
+
+  .front-block {
+    font-size: 1.2em;
+  }
+}
 """
 
 
