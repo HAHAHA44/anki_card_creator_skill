@@ -1,0 +1,4 @@
+interface:
+  display_name: "Anki Card Creator"
+  short_description: "Drafts editable deck specs and generates Anki packages."
+  default_prompt: "Use $anki-card-creator to turn a topic or passage into an editable Anki deck spec and then package it as .apkg after approval."
