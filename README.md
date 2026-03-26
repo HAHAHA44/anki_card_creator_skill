@@ -22,11 +22,11 @@ The workflow is review-first: draft `deck-spec.md`, let the user edit it, then g
 
 1. Start from one of two inputs:
    `domain` or `extract`
-2. Confirm:
-   `card_type`, `deck_name`, `style_profile`
-3. Draft a fixed-format Markdown deck spec
-4. Let the user revise the Markdown directly
-5. Validate and package it through the MCP layer
+2. Show the default deck layout preview and confirm or revise the field placement
+3. Confirm deck metadata such as `deck_name`
+4. Draft a fixed-format Markdown deck spec
+5. Let the user revise the Markdown directly
+6. Validate and package it through the MCP layer
 
 ## Quick Start
 
