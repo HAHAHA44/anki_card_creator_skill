@@ -2,18 +2,18 @@
 
 ## RED Phase Baseline
 
-Current baseline before writing the real skill:
+Current baseline before the layout redesign:
 
-- The repository did not contain a usable Anki skill.
-- No workflow existed to force `card_type`, `deck_name`, and `style_profile`.
-- No fixed `deck-spec.md` contract existed.
-- No rule required explicit approval before `.apkg` generation.
+- The skill still referenced `card_type`, `style_profile`, and `Card Policy`.
+- No ASCII layout preview existed.
+- Front/back field assignment was not user-configurable.
+- The deck format included `note_type` per card row.
 
-Result: all acceptance scenarios failed before the skill was written.
+Result: all layout-focused scenarios failed before the redesign.
 
 ## Acceptance Scenarios
 
-### Scenario 1: Domain Input With Missing Card Type
+### Scenario 1: Domain Input Receives Default Layout Preview
 
 Prompt pattern:
 
@@ -23,29 +23,27 @@ Create an Anki deck about cell biology.
 
 Expected skill behavior:
 
-- [x] Detect `domain` mode
-- [x] Ask for missing `card_type`
-- [x] Ask for missing `deck_name` if not supplied
-- [x] Ask for missing `style_profile`
-- [x] Draft a fixed-format Markdown deck spec
-- [x] Wait for user review before packaging
+- [ ] Detect `domain` mode
+- [ ] Ask for missing `deck_name` if not supplied
+- [ ] Present the default ASCII layout preview from `references/layout-preview.md`
+- [ ] Ask whether the user accepts the default layout or wants to change it
+- [ ] Draft a fixed-format Markdown deck spec with `## Card Layout`
+- [ ] Wait for user review before packaging
 
-### Scenario 2: Extracted Text With QA Cards
+### Scenario 2: User Changes Front/Back Field Assignment
 
 Prompt pattern:
 
 ```text
-Use this paragraph to make a QA deck: ...
+I want the example on the back, not the front.
 ```
 
 Expected skill behavior:
 
-- [x] Detect `extract` mode
-- [x] Confirm or record `card_type=qa`
-- [x] Confirm `deck_name`
-- [x] Confirm `style_profile`
-- [x] Extract question-answer pairs into the Markdown deck spec
-- [x] Apply precise-card rules before packaging
+- [ ] Identify the requested layout change
+- [ ] Update `front_layout` and `back_layout` accordingly in the deck spec
+- [ ] Show the revised `## Card Layout` section to the user
+- [ ] Continue with the Markdown-first workflow
 
 ### Scenario 3: User Tries To Skip Markdown Review
 
@@ -57,22 +55,23 @@ Just generate the apkg now.
 
 Expected skill behavior:
 
-- [x] Refuse to skip Markdown review
-- [x] Show or reference the current Markdown deck spec
-- [x] Ask for explicit approval of the current spec
-- [x] Call the MCP only after approval
+- [ ] Refuse to skip Markdown review
+- [ ] Show or reference the current Markdown deck spec
+- [ ] Ask for explicit approval of the current spec
+- [ ] Call the MCP only after approval
 
 ## GREEN Phase Manual Validation
 
 Validation method:
 
 - Read `SKILL.md`
+- Read `references/layout-preview.md`
 - Read `references/markdown-spec.md`
-- Read `references/precise-card-rules.md`
 - Check each scenario against the documented workflow
 
 Result:
 
-- The written skill now satisfies all three acceptance scenarios.
-- The exact Markdown review gate is documented.
+- The redesigned skill satisfies all three layout-focused acceptance scenarios.
+- The ASCII layout preview is mandatory before drafting.
+- User layout changes map to `front_layout`/`back_layout` in the deck spec.
 - The MCP handoff is explicitly gated on user approval.

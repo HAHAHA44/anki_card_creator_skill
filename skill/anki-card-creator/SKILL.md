@@ -1,23 +1,22 @@
 ---
 name: anki-card-creator
-description: Use when creating Anki decks from a topic/domain or from source text, especially when Codex should draft an editable Markdown deck spec, enforce precise-card rules, and only generate an .apkg after explicit user approval.
+description: Use when creating Anki decks from a topic/domain or from source text, especially when Codex should draft an editable Markdown deck spec, explain the card layout, and only generate an .apkg after explicit user approval.
 ---
 
 # Anki Card Creator
 
 ## Overview
 
-Create Anki decks through a review-first workflow. Gather the required card settings, draft a fixed-format `deck-spec.md`, let the user edit that Markdown, and only then call the packaging MCP to generate an `.apkg`.
+Create Anki decks through a review-first workflow. Explain the default card layout, gather the deck name, draft a fixed-format `deck-spec.md`, let the user edit that Markdown, and only then call the packaging MCP to generate an `.apkg`.
 
 ## Required Inputs
 
 Before drafting cards, confirm these values with the user:
 
-- `card_type`: `term`, `language`, or `qa`
 - `deck_name`
-- `style_profile`: `concise`, `exam`, `example-rich`, or `mnemonic`
+- `source_mode`: `domain` or `extract` (infer from the request when obvious)
 
-Do not skip this clarification step. If one of these fields is missing, ask for it.
+Do not ask for `card_type` or `style_profile` - these concepts no longer exist.
 
 ## Entry Modes
 
@@ -34,15 +33,29 @@ The user provides source text. Extract candidate vocabulary or question-answer i
 Follow this exact order:
 
 1. Identify whether the request is `domain` or `extract`.
-2. Gather any missing required inputs.
-3. Draft a fixed-format Markdown deck spec.
-4. Show the Markdown deck spec to the user as the editable source of truth.
-5. Let the user revise metadata and card rows directly in Markdown.
-6. Re-read the current Markdown deck spec.
-7. Ask for explicit approval to generate the final deck.
-8. Only after approval, call the MCP tool that validates the spec and writes the `.apkg`.
+2. Confirm `deck_name` if not supplied.
+3. Present the default card layout using the ASCII preview from [references/layout-preview.md](references/layout-preview.md).
+4. Ask whether the user accepts the default layout or wants to change which fields appear on the front and back.
+5. Convert any requested layout changes into `front_layout` and `back_layout` field lists.
+6. Draft a fixed-format Markdown deck spec using the confirmed layout.
+7. Show the Markdown deck spec to the user as the editable source of truth.
+8. Let the user revise metadata, layout, and card rows directly in Markdown.
+9. Re-read the current Markdown deck spec.
+10. Ask for explicit approval to generate the final deck.
+11. Only after approval, call the MCP tool that validates the spec and writes the `.apkg`.
 
-Never skip the Markdown review phase. Never generate the `.apkg` from hidden intermediate state.
+Never skip the layout explanation step. Never skip the Markdown review phase. Never generate the `.apkg` from hidden intermediate state.
+
+## Layout Explanation
+
+Before drafting, always show the ASCII layout preview from [references/layout-preview.md](references/layout-preview.md) and state the default field lists:
+
+- Front: context, front, example
+- Back: back, extra
+
+Then ask: "Does this layout work for you, or would you like to move any fields?"
+
+If the user requests a change, update `front_layout` and `back_layout` accordingly. Valid field names are: `front`, `back`, `context`, `example`, `extra`. A field may only appear on one side.
 
 ## Markdown Contract
 
@@ -74,11 +87,11 @@ If a candidate card violates these rules, fix it before calling the MCP.
 
 ## Card Table Guidance
 
-Each row in `## Cards` is one card. The first version uses one shared table for all card types:
+Each row in `## Cards` is one card. Use one shared table for all content types:
 
-- `term`: `front` is the term or its prompt, `back` is the definition/explanation
-- `language`: `front` is the word/phrase, `back` is the meaning/translation
-- `qa`: `front` is the question, `back` is the answer
+- for terms: `front` is the term or prompt, `back` is the definition
+- for language: `front` is the word or phrase, `back` is the meaning
+- for QA: `front` is the question, `back` is the answer
 
 Use `context`, `example`, `extra`, and `tags` only when they add signal.
 
@@ -106,5 +119,6 @@ When presenting the drafted deck:
 
 ## References
 
+- Use [references/layout-preview.md](references/layout-preview.md) for the ASCII layout preview and layout rules.
 - Use [references/markdown-spec.md](references/markdown-spec.md) for the exact Markdown structure.
-- Use [references/precise-card-rules.md](references/precise-card-rules.md) for card drafting constraints derived from the approved article.
+- Use [references/precise-card-rules.md](references/precise-card-rules.md) for card drafting constraints.
