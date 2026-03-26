@@ -11,7 +11,7 @@ def build_apkg(spec: DeckSpec, output_dir: Path) -> Path:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     deck = genanki.Deck(_stable_deck_id(spec.deck_name), spec.deck_name)
-    model = get_note_model(spec.card_type, spec.style_profile)
+    model = get_note_model(spec.front_layout, spec.back_layout)
 
     for card in spec.cards:
         note = genanki.Note(
