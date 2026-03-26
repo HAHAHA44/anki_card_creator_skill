@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m pytest mcp/tests/test_markdown_parser.py -q)",
+      "Bash(python -m pytest mcp/tests/test_validators.py -q)",
+      "Bash(python -m pytest mcp/tests/test_card_models.py -q)",
+      "Bash(python -m pytest mcp/tests/test_apkg_builder.py mcp/tests/test_service.py -q)",
+      "Bash(python \"C:\\\\Users\\\\27391\\\\.codex\\\\skills\\\\.system\\\\skill-creator\\\\scripts\\\\quick_validate.py\" \".\\\\skill\\\\anki-card-creator\")",
+      "Bash(python -m pytest mcp/tests -q)"
+    ]
+  }
+}
