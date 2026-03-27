@@ -1,6 +1,6 @@
 ---
 name: anki-card-creator
-description: Use when creating Anki decks from a topic/domain or from source text, especially when Codex should draft an editable Markdown deck spec, explain the card layout, and only generate an .apkg after explicit user approval.
+description: Use when creating Anki decks from a topic/domain or from source text, especially for editable review-first deck drafting and bilingual study decks that need sensible default field direction.
 ---
 
 # Anki Card Creator
@@ -9,14 +9,23 @@ description: Use when creating Anki decks from a topic/domain or from source tex
 
 Create Anki decks through a review-first workflow. Draft or continue a fixed-format `deck-spec.md`, show the layout inline so the user can see how fields map to card sides, lock the card field convention with 3-5 sample rows, let the user edit the Markdown, and package via MCP once the user signals readiness.
 
+For clear Chinese-English bilingual requests, default immediately to an English-front / Chinese-back convention with richer study fields:
+
+- `prompt`: English term or phrase
+- `answer`: Chinese equivalent
+- `example`: original English usage sentence
+- `extra`: Chinese explanatory note
+
+Show sample rows in that format directly. Do not ask a separate preliminary question just to decide front/back language direction when the bilingual intent is already clear.
+
 ## Required Inputs
 
-Before drafting cards, confirm these values with the user:
+Before drafting cards, infer these values from the request:
 
 - `deck_name`
 - `source_mode`: `domain` or `extract` (infer from the request when obvious)
 
-Do not ask for `card_type` or `style_profile` - these concepts no longer exist.
+Only confirm `deck_name` if it is genuinely ambiguous.
 
 ## Entry Modes
 
@@ -35,22 +44,47 @@ If the provided source is already a Markdown deck spec file that matches the dec
 - continue the normal review-first workflow from the current spec
 - keep the current spec as the single source of truth
 
+## Bilingual Default Detection
+
+Treat the request as a Chinese-English bilingual deck when one or more of these signals are present:
+
+- the user explicitly says bilingual, Chinese-English, English-Chinese, 中英双语, 中英对照, 英文在前, 中文在后, translation, terminology reference, or vocabulary handbook
+- the source contains repeated Chinese/English term pairs
+- the task is clearly to learn or review cross-language terminology rather than open-ended QA
+
+When bilingual mode is active:
+
+- default to `prompt = English` and `answer = Chinese`
+- default to `example = English sentence`
+- default to `extra = Chinese note`
+- show sample rows directly in that format
+- do not ask a separate front/back language-direction question before showing examples unless the user gave conflicting signals
+
+When the request is not clearly bilingual:
+
+- infer the most sensible direction from the content
+- keep one deck-wide language convention
+- never let front/back languages cross unpredictably across rows
+
 ## Required Workflow
 
 Follow this exact order:
 
 1. Identify whether the request is `domain` or `extract`.
 2. Infer `deck_name` from the request; confirm only if genuinely ambiguous.
-3. Establish the card field convention before full-spec drafting. Show 3-5 representative sample rows using the same column structure as `## Cards`, and make sure each column is vertically consistent across the examples.
-4. Ask the user to confirm or revise those examples. Users may adjust the example contents through conversation before the full spec is generated.
-5. Lock the agreed convention from those examples and generate or continue the fixed-format Markdown deck spec using that convention. Show the ASCII layout preview from [references/layout-preview.md](references/layout-preview.md) above the fenced spec block so the user can see how fields map to card sides before editing.
-6. Perform a consistency pass on the generated spec before presenting it: confirm every card follows the agreed example convention, especially that `prompt` and `answer` are directionally consistent across all rows.
-7. Present the Markdown deck spec as the editable source of truth. The layout is visible in `## Card Layout` - users can move fields by editing those lines directly.
-8. Let the user revise metadata, layout, and card rows directly in Markdown.
-9. Once the user signals readiness - explicitly ("package it", "generate", "go ahead") or contextually ("looks good", "that's fine") - re-read the current Markdown deck spec and route packaging through MCP if available, otherwise through the CLI fallback skill.
+3. Decide whether bilingual default mode applies.
+4. Establish the card field convention before full-spec drafting. Show 3-5 representative sample rows using the same column structure as `## Cards`, and make sure each column is vertically consistent across the examples.
+5. If bilingual default mode applies, present those rows directly using English `prompt`, Chinese `answer`, English `example`, and Chinese `extra` without first asking a separate language-direction question.
+6. Let the user revise the sample rows if desired. If the user does not object, treat those rows as the working convention.
+7. Lock the convention from those examples and generate or continue the fixed-format Markdown deck spec using that convention. Show the ASCII layout preview from [references/layout-preview.md](references/layout-preview.md) above the fenced spec block so the user can see how fields map to card sides before editing.
+8. Perform a consistency pass on the generated spec before presenting it: confirm every card follows the agreed example convention, especially that `prompt` and `answer` are directionally consistent across all rows.
+9. Present the Markdown deck spec as the editable source of truth. The layout is visible in `## Card Layout` - users can move fields by editing those lines directly.
+10. Let the user revise metadata, layout, and card rows directly in Markdown.
+11. Once the user signals readiness - explicitly ("package it", "generate", "go ahead") or contextually ("looks good", "that's fine") - re-read the current Markdown deck spec and route packaging through MCP if available, otherwise through the CLI fallback skill.
 
 Never skip the Markdown review phase. Never generate the `.apkg` from hidden intermediate state.
 Never skip the example-confirmation step before drafting a new full spec from extracted content.
+Never ask an unnecessary preliminary direction-setting question when bilingual default mode already determines the convention.
 
 ## Layout Presentation
 
@@ -62,6 +96,11 @@ Default field lists:
 - Back: answer, extra
 
 If the user requests a layout change during conversation, update `front_layout` and `back_layout` accordingly. Valid field names are: `prompt`, `answer`, `context`, `example`, `extra`. A field may only appear on one side.
+
+For bilingual default decks, the semantic default is:
+
+- front content centers on English recognition (`prompt` and `example`)
+- back content centers on Chinese understanding (`answer` and `extra`)
 
 ## Markdown Contract
 
@@ -85,12 +124,15 @@ Before generating a new full spec from extracted content:
 - use representative rows, not placeholders
 - make the examples vertically consistent by column
 - explicitly sanity-check column direction, such as whether `prompt` is always English and `answer` is always Chinese
+- for bilingual default decks, also keep `example` as English and `extra` as Chinese
+- present the default rows first when the direction is already clear; do not ask a separate direction-setting question before showing them
 - let the user revise the sample rows in conversation before drafting the full spec
 
 Treat the approved sample rows as the output contract for the full spec:
 
 - all later rows must follow the same field direction and content pattern
 - do not flip `prompt` and `answer` in later rows
+- do not flip the language roles of `example` and `extra` in later rows when those columns are part of the convention
 - do not mix multiple conventions in one deck unless the user explicitly requests it
 - if the user changes the examples, regenerate or revise the spec to match the updated convention
 
@@ -107,6 +149,7 @@ When drafting or revising cards:
 - avoid yes-no prompts when a more informative prompt is available
 - include enough context so the prompt makes sense in isolation
 - rewrite or split ambiguous cards before packaging
+- for bilingual study decks, make `example` and `extra` teach the term rather than merely restate it
 
 If a candidate card violates these rules, fix it before calling the MCP.
 
@@ -120,9 +163,19 @@ Each row in `## Cards` is one card. Use one shared table for all content types:
 
 Use `context`, `example`, `extra`, and `tags` only when they add signal.
 
+For Chinese-English bilingual decks, the default interpretation is:
+
+- `prompt`: English term or phrase
+- `answer`: Chinese equivalent
+- `example`: English sentence that demonstrates realistic usage
+- `extra`: Chinese explanation of meaning, workflow usage, or distinctions
+
+For non-bilingual decks, infer the most sensible mapping from the source, but keep one consistent front/back language convention throughout the deck.
+
 If the user wants to remove a card, delete the row. There is no enabled/disabled flag.
 
 When examples establish a language direction or mapping convention, preserve that convention for every row in the table.
+Never alternate front/back languages across rows unless the user explicitly asks for a mixed-direction deck.
 
 ## Consistency Check
 
@@ -130,7 +183,9 @@ After generating or revising the spec, run a self-check before presenting comple
 
 - confirm all `prompt` values follow the same agreed direction and format
 - confirm all `answer` values follow the same agreed direction and format
+- confirm `example` and `extra` follow the agreed language roles when they are part of the convention
 - confirm `prompt` and `answer` stay aligned with the approved sample-row convention
+- confirm front/back languages do not cross unpredictably across rows
 - fix mismatched rows before presenting the spec as ready
 
 If the deck intentionally mixes conventions, state that explicitly and tie each variation back to the user's instruction.

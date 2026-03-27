@@ -12,4 +12,4 @@
 ## Cards
 | id | prompt | answer | context | example | extra | tags |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | [replace] | [replace] | [replace or blank] | [replace or blank] | [replace or blank] | [comma,separated,tags] |
+| 1 | [replace] | [replace] | [replace or blank] | [replace with example sentence or blank] | [replace with explanatory note or blank] | [comma,separated,tags] |
