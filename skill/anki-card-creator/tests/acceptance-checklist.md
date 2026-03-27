@@ -2,76 +2,75 @@
 
 ## RED Phase Baseline
 
-Current baseline before the layout redesign:
+Current baseline before the MCP-or-CLI routing redesign:
 
-- The skill still referenced `card_type`, `style_profile`, and `Card Policy`.
-- No ASCII layout preview existed.
-- Front/back field assignment was not user-configurable.
-- The deck format included `note_type` per card row.
+- The skill only references MCP packaging.
+- The skill does not describe any fallback when the MCP tool is unavailable.
+- No separate packaging-only fallback skill exists.
+- No local CLI packaging path exists for terminal callers.
 
-Result: all layout-focused scenarios failed before the redesign.
+Result: all routing-focused scenarios fail before the redesign.
 
 ## Acceptance Scenarios
 
-### Scenario 1: Domain Input Receives Default Layout Preview
+### Scenario 1: Approved Deck Uses MCP When MCP Tool Is Available
 
 Prompt pattern:
 
 ```text
-Create an Anki deck about cell biology.
+The current Markdown deck spec is approved. Generate the final deck.
 ```
 
 Expected skill behavior:
 
-- [ ] Detect `domain` mode
-- [ ] Ask for missing `deck_name` if not supplied
-- [ ] Present the default ASCII layout preview from `references/layout-preview.md`
-- [ ] Ask whether the user accepts the default layout or wants to change it
-- [ ] Draft a fixed-format Markdown deck spec with `## Card Layout`
-- [ ] Wait for user review before packaging
+- [ ] Confirm the current Markdown deck spec is the approved source of truth
+- [ ] Check whether `mcp__ankiCardCreator__build_apkg_from_spec` is available
+- [ ] Call MCP when the tool is available
+- [ ] Pass `spec_path` and optional `output_dir` to MCP
+- [ ] Surface validation errors back into the Markdown editing loop if packaging fails
 
-### Scenario 2: User Changes Front/Back Field Assignment
+### Scenario 2: Approved Deck Falls Back To Packaging Skill When MCP Is Unavailable
 
 Prompt pattern:
 
 ```text
-I want the example on the back, not the front.
+The current Markdown deck spec is approved. Generate the final deck, but MCP is not installed in this session.
 ```
 
 Expected skill behavior:
 
-- [ ] Identify the requested layout change
-- [ ] Update `front_layout` and `back_layout` accordingly in the deck spec
-- [ ] Show the revised `## Card Layout` section to the user
-- [ ] Continue with the Markdown-first workflow
+- [ ] Confirm the current Markdown deck spec is the approved source of truth
+- [ ] Check whether `mcp__ankiCardCreator__build_apkg_from_spec` is available
+- [ ] Detect that the MCP tool is unavailable
+- [ ] Invoke the fallback packaging skill instead of MCP
+- [ ] Keep the same `spec_path` and optional `output_dir` contract
+- [ ] Surface validation errors back into the Markdown editing loop if packaging fails
 
-### Scenario 3: User Tries To Skip Markdown Review
+### Scenario 3: Fallback Path Stays Packaging-Only
 
 Prompt pattern:
 
 ```text
-Just generate the apkg now.
+MCP is unavailable. Use the fallback path to generate the final deck.
 ```
 
 Expected skill behavior:
 
-- [ ] Refuse to skip Markdown review
-- [ ] Show or reference the current Markdown deck spec
-- [ ] Ask for explicit approval of the current spec
-- [ ] Call the MCP only after approval
+- [ ] Do not re-draft cards
+- [ ] Do not regenerate Markdown from hidden state
+- [ ] Do not bypass explicit approval
+- [ ] Hand off only the approved spec path and packaging options to the fallback skill
 
 ## GREEN Phase Manual Validation
 
 Validation method:
 
 - Read `SKILL.md`
-- Read `references/layout-preview.md`
-- Read `references/markdown-spec.md`
-- Check each scenario against the documented workflow
+- Check each routing scenario against the documented workflow
+- Read the fallback packaging skill once it exists
 
 Result:
 
-- The redesigned skill satisfies all three layout-focused acceptance scenarios.
-- The ASCII layout preview is mandatory before drafting.
-- User layout changes map to `front_layout`/`back_layout` in the deck spec.
-- The MCP handoff is explicitly gated on user approval.
+- Pending redesign.
+- Current skill does not satisfy the MCP-unavailable scenarios.
+- Current repository has no fallback packaging skill or CLI transport.

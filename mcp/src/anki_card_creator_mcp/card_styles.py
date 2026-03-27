@@ -14,8 +14,8 @@ BASE_CSS = """
   text-transform: uppercase;
 }
 
-.front-block,
-.back-block {
+.prompt-block,
+.answer-block {
   margin: 12px 0;
 }
 
@@ -30,7 +30,7 @@ BASE_CSS = """
 
 STYLE_OVERRIDES = {
     "concise": ".card { line-height: 1.4; }",
-    "exam": ".card { line-height: 1.5; } .front-block { font-weight: 700; }",
+    "exam": ".card { line-height: 1.5; } .prompt-block { font-weight: 700; }",
     "example-rich": ".card { line-height: 1.6; } .example-block { border-top: 1px solid #bcccdc; padding-top: 10px; }",
     "mnemonic": ".card { line-height: 1.5; } .extra-block { font-style: italic; }",
 }

@@ -1,18 +1,15 @@
 # Anki Card Creator Skill
 
-Hybrid Anki card generation project with two parts:
+A Codex skill that drafts an editable Markdown deck spec and packages it into an `.apkg` file via MCP.
 
-- a Codex skill that drafts an editable Markdown deck spec
-- a Python MCP implementation that validates that spec and generates `.apkg` files with `genanki`
-
-The workflow is review-first: draft `deck-spec.md`, let the user edit it, then generate the final deck only after approval.
+The workflow is review-first: draft `deck-spec.md`, let the user edit it, then generate the final deck only after the user signals readiness.
 
 ## What This Repository Contains
 
 - `skill/anki-card-creator/`
   the installable skill source
 - `mcp/`
-  the parsing, validation, and packaging implementation
+  the parsing, validation, and packaging implementation exposed as an MCP server
 - `scripts/install_skill.py`
   copies the local skill into a Codex skills directory
 - `docs/`
@@ -20,26 +17,29 @@ The workflow is review-first: draft `deck-spec.md`, let the user edit it, then g
 
 ## Supported Workflow
 
-1. Start from one of two inputs:
-   `domain` or `extract`
-2. Show the default deck layout preview and confirm or revise the field placement
-3. Confirm deck metadata such as `deck_name`
-4. Draft a fixed-format Markdown deck spec
-5. Let the user revise the Markdown directly
-6. Validate and package it through the MCP layer
+1. Start from one of two inputs: `domain` or `extract`
+2. Draft a fixed-format Markdown deck spec with the default layout shown inline
+3. Let the user revise the Markdown directly
+4. Validate and package via MCP once the user signals readiness
 
 ## Quick Start
 
 Run tests:
 
-```powershell
-python -m pytest .\mcp\tests -q
+```bash
+python -m pytest mcp/tests -q
+```
+
+Run the local CLI directly:
+
+```bash
+PYTHONPATH=mcp/src python -m anki_card_creator_mcp.cli mcp/tests/fixtures/qa_deck_spec.md --output-dir mcp/tests/output
 ```
 
 Install the skill locally:
 
-```powershell
-python .\scripts\install_skill.py --source .\skill\anki-card-creator --dest "$env:USERPROFILE\.codex\skills" --name anki-card-creator
+```bash
+python scripts/install_skill.py --source skill/anki-card-creator --dest ~/.codex/skills --name anki-card-creator
 ```
 
 Validate the skill structure:

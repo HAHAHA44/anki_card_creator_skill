@@ -32,7 +32,7 @@ Contains the installable Codex skill source.
 
 ### `mcp/`
 
-Contains the Python implementation of parsing, validation, and packaging.
+Contains the Python implementation of parsing, validation, and packaging exposed as an MCP server.
 
 - `mcp/pyproject.toml`
   package metadata and dependencies
@@ -52,6 +52,8 @@ Contains the Python implementation of parsing, validation, and packaging.
   high-level entry point used by callers and tests
 - `mcp/src/anki_card_creator_mcp/server.py`
   thin MCP server wrapper
+- `mcp/src/anki_card_creator_mcp/cli.py`
+  thin CLI wrapper over the same service layer
 - `mcp/tests/`
   unit and end-to-end tests plus Markdown fixtures
 
@@ -71,15 +73,15 @@ Contains design and maintenance documentation.
 - `docs/contributing.md`
   contribution workflow
 - `docs/superpowers/specs/`
-  approved design spec
+  approved design specs
 - `docs/superpowers/plans/`
-  implementation plan
+  implementation plans
 
 ## Design Boundary
 
 The repository is intentionally split:
 
-- the skill owns interaction and Markdown generation
-- the MCP owns deterministic validation and packaging
+- the skill owns user interaction and Markdown generation
+- the MCP layer owns deterministic validation and packaging
 
-That boundary should stay stable. Do not move deck-generation conversation logic into the MCP layer.
+Do not move deck-generation conversation logic into the MCP layer.

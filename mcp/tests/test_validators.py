@@ -7,17 +7,16 @@ def make_spec(**overrides: object) -> DeckSpec:
         "deck_name": "Biology Basics",
         "source_mode": "domain",
         "output_file": "biology-basics.apkg",
-        "front_layout": ["context", "front"],
-        "back_layout": ["back", "extra"],
-        "generation_notes": "",
-        "cards": [CardRow(id="1", front="Q", back="A")],
+        "front_layout": ["context", "prompt"],
+        "back_layout": ["answer", "extra"],
+        "cards": [CardRow(id="1", prompt="Q", answer="A")],
     }
     base.update(overrides)
     return DeckSpec(**base)
 
 
 def test_rejects_invalid_front_layout_field() -> None:
-    spec = make_spec(front_layout=["context", "bad"], back_layout=["back", "extra"])
+    spec = make_spec(front_layout=["context", "bad"], back_layout=["answer", "extra"])
 
     errors = validate_deck_spec(spec)
 
@@ -25,7 +24,7 @@ def test_rejects_invalid_front_layout_field() -> None:
 
 
 def test_rejects_duplicate_layout_field() -> None:
-    spec = make_spec(front_layout=["context", "front"], back_layout=["context", "back"])
+    spec = make_spec(front_layout=["context", "prompt"], back_layout=["context", "answer"])
 
     errors = validate_deck_spec(spec)
 
@@ -51,8 +50,8 @@ def test_rejects_non_apkg_output_file() -> None:
 def test_rejects_duplicate_card_ids() -> None:
     spec = make_spec(
         cards=[
-            CardRow(id="1", front="Q1", back="A1"),
-            CardRow(id="1", front="Q2", back="A2"),
+            CardRow(id="1", prompt="Q1", answer="A1"),
+            CardRow(id="1", prompt="Q2", answer="A2"),
         ]
     )
 

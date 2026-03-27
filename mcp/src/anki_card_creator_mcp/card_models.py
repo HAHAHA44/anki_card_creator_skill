@@ -4,16 +4,16 @@ import genanki
 
 
 MODEL_FIELDS = [
-    {"name": "Front"},
-    {"name": "Back"},
+    {"name": "Prompt"},
+    {"name": "Answer"},
     {"name": "Context"},
     {"name": "Example"},
     {"name": "Extra"},
 ]
 
 FIELD_RENDERERS = {
-    "front": '<div class="front-block">{{Front}}</div>',
-    "back": '<div class="back-block">{{Back}}</div>',
+    "prompt": '<div class="prompt-block">{{Prompt}}</div>',
+    "answer": '<div class="answer-block">{{Answer}}</div>',
     "context": '{{#Context}}<div class="context-block">{{Context}}</div>{{/Context}}',
     "example": '{{#Example}}<div class="example-block">{{Example}}</div>{{/Example}}',
     "extra": '{{#Extra}}<div class="extra-block">※ {{Extra}}</div>{{/Extra}}',
@@ -58,14 +58,14 @@ DEFAULT_CSS = """
   text-transform: uppercase;
 }
 
-.front-block,
-.back-block,
+.prompt-block,
+.answer-block,
 .example-block,
 .extra-block {
   margin-top: 0;
 }
 
-.front-block {
+.prompt-block {
   margin-bottom: 12px;
   font-size: 1.32em;
   font-weight: 700;
@@ -73,7 +73,7 @@ DEFAULT_CSS = """
   letter-spacing: -0.02em;
 }
 
-.back-block {
+.answer-block {
   margin-top: 18px;
   font-size: 1.02em;
 }
@@ -113,7 +113,7 @@ DEFAULT_CSS = """
     border-radius: 16px;
   }
 
-  .front-block {
+  .prompt-block {
     font-size: 1.2em;
   }
 }

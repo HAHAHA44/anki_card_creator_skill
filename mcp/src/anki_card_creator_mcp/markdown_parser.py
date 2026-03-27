@@ -27,7 +27,6 @@ def parse_deck_spec(path: Path) -> DeckSpec:
         output_file=metadata["output_file"],
         front_layout=front_layout,
         back_layout=back_layout,
-        generation_notes=layout.get("generation_notes", ""),
         cards=cards,
     )
 
@@ -76,8 +75,8 @@ def _parse_cards_table(lines: list[str]) -> list[CardRow]:
         cards.append(
             CardRow(
                 id=row.get("id", ""),
-                front=row.get("front", ""),
-                back=row.get("back", ""),
+                prompt=row.get("prompt", ""),
+                answer=row.get("answer", ""),
                 context=row.get("context", ""),
                 example=row.get("example", ""),
                 extra=row.get("extra", ""),

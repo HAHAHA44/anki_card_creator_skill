@@ -7,7 +7,7 @@ description: Use when creating Anki decks from a topic/domain or from source tex
 
 ## Overview
 
-Create Anki decks through a review-first workflow. Explain the default card layout, gather the deck name, draft a fixed-format `deck-spec.md`, let the user edit that Markdown, and only then call the packaging MCP to generate an `.apkg`.
+Create Anki decks through a review-first workflow. Draft a fixed-format `deck-spec.md`, show the layout inline so the user can see how fields map to card sides, let the user edit the Markdown, and package via MCP once the user signals readiness.
 
 ## Required Inputs
 
@@ -33,29 +33,24 @@ The user provides source text. Extract candidate vocabulary or question-answer i
 Follow this exact order:
 
 1. Identify whether the request is `domain` or `extract`.
-2. Confirm `deck_name` if not supplied.
-3. Present the default card layout using the ASCII preview from [references/layout-preview.md](references/layout-preview.md).
-4. Ask whether the user accepts the default layout or wants to change which fields appear on the front and back.
-5. Convert any requested layout changes into `front_layout` and `back_layout` field lists.
-6. Draft a fixed-format Markdown deck spec using the confirmed layout.
-7. Show the Markdown deck spec to the user as the editable source of truth.
-8. Let the user revise metadata, layout, and card rows directly in Markdown.
-9. Re-read the current Markdown deck spec.
-10. Ask for explicit approval to generate the final deck.
-11. Only after approval, call the MCP tool that validates the spec and writes the `.apkg`.
+2. Infer `deck_name` from the request; confirm only if genuinely ambiguous.
+3. Draft a fixed-format Markdown deck spec using the default layout. Show the ASCII layout preview from [references/layout-preview.md](references/layout-preview.md) above the fenced spec block so the user can see how fields map to card sides before editing.
+4. Present the Markdown deck spec as the editable source of truth. The layout is visible in `## Card Layout` — users can move fields by editing those lines directly.
+5. Let the user revise metadata, layout, and card rows directly in Markdown.
+6. Once the user signals readiness — explicitly ("package it", "generate", "go ahead") or contextually ("looks good", "that's fine") — re-read the current Markdown deck spec and route packaging through MCP if available, otherwise through the CLI fallback skill.
 
-Never skip the layout explanation step. Never skip the Markdown review phase. Never generate the `.apkg` from hidden intermediate state.
+Never skip the Markdown review phase. Never generate the `.apkg` from hidden intermediate state.
 
-## Layout Explanation
+## Layout Presentation
 
-Before drafting, always show the ASCII layout preview from [references/layout-preview.md](references/layout-preview.md) and state the default field lists:
+When drafting the deck spec, show the ASCII layout preview from [references/layout-preview.md](references/layout-preview.md) above the fenced Markdown block. Do not ask a separate confirmation question about the layout. Users who want a different layout can edit `front_layout` and `back_layout` directly in `## Card Layout`.
 
-- Front: context, front, example
-- Back: back, extra
+Default field lists:
 
-Then ask: "Does this layout work for you, or would you like to move any fields?"
+- Front: context, prompt, example
+- Back: answer, extra
 
-If the user requests a change, update `front_layout` and `back_layout` accordingly. Valid field names are: `front`, `back`, `context`, `example`, `extra`. A field may only appear on one side.
+If the user requests a layout change during conversation, update `front_layout` and `back_layout` accordingly. Valid field names are: `prompt`, `answer`, `context`, `example`, `extra`. A field may only appear on one side.
 
 ## Markdown Contract
 
@@ -89,22 +84,22 @@ If a candidate card violates these rules, fix it before calling the MCP.
 
 Each row in `## Cards` is one card. Use one shared table for all content types:
 
-- for terms: `front` is the term or prompt, `back` is the definition
-- for language: `front` is the word or phrase, `back` is the meaning
-- for QA: `front` is the question, `back` is the answer
+- for terms: `prompt` is the term or question, `answer` is the definition
+- for language: `prompt` is the word or phrase, `answer` is the meaning
+- for QA: `prompt` is the question, `answer` is the answer
 
 Use `context`, `example`, `extra`, and `tags` only when they add signal.
 
 If the user wants to remove a card, delete the row. There is no enabled/disabled flag.
 
-## MCP Handoff
+## Packaging Handoff
 
-Once the user approves the current Markdown deck spec, call the MCP tool that validates and packages the deck.
-
-The MCP input should be:
+Once the user signals readiness, re-read the current Markdown deck spec and call `mcp__ankiCardCreator__build_apkg_from_spec` with:
 
 - path to the Markdown deck spec
 - optional output directory if the user requests a specific location
+
+If the MCP tool is not available in the current session, tell the user that the MCP server needs to be registered before packaging can proceed.
 
 If validation fails, surface the returned errors to the user and continue editing the Markdown spec instead of trying to guess a fix silently.
 

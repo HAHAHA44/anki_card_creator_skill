@@ -2,7 +2,7 @@ from anki_card_creator_mcp.models import DeckSpec
 
 
 VALID_SOURCE_MODES = {"domain", "extract"}
-VALID_LAYOUT_FIELDS = {"front", "back", "context", "example", "extra"}
+VALID_LAYOUT_FIELDS = {"prompt", "answer", "context", "example", "extra"}
 
 
 def validate_deck_spec(spec: DeckSpec) -> list[str]:
@@ -40,9 +40,9 @@ def validate_deck_spec(spec: DeckSpec) -> list[str]:
         else:
             seen_ids.add(card.id)
 
-        if not card.front:
-            errors.append(f"cards[{index}].front is required")
-        if not card.back:
-            errors.append(f"cards[{index}].back is required")
+        if not card.prompt:
+            errors.append(f"cards[{index}].prompt is required")
+        if not card.answer:
+            errors.append(f"cards[{index}].answer is required")
 
     return errors

@@ -17,8 +17,8 @@ def build_apkg(spec: DeckSpec, output_dir: Path) -> Path:
         note = genanki.Note(
             model=model,
             fields=[
-                card.front,
-                card.back,
+                card.prompt,
+                card.answer,
                 card.context,
                 card.example,
                 card.extra,

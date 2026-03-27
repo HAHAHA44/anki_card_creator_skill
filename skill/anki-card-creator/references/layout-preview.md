@@ -9,22 +9,22 @@ Use the ASCII preview below whenever presenting the default card layout to the u
 |  FRONT (shown as question)          |
 |                                     |
 |  [Context]   <- topic cue (if set) |
-|  [Front]     <- main prompt        |
+|  [Prompt]    <- main prompt        |
 |  [Example]   <- example (if set)   |
 +-------------------------------------+
 
 +-------------------------------------+
 |  BACK (shown after reveal)          |
 |                                     |
-|  [Back]      <- answer             |
+|  [Answer]    <- answer             |
 |  [*] [Extra] <- extra (if set)     |
 +-------------------------------------+
 ```
 
 ## Default Field Lists
 
-- `front_layout`: context, front, example
-- `back_layout`: back, extra
+- `front_layout`: context, prompt, example
+- `back_layout`: answer, extra
 
 ## Extra Field Rendering Rule
 
@@ -38,6 +38,6 @@ If the user wants to move a field:
 2. Add it to the other side.
 3. Update `front_layout` and `back_layout` in `## Card Layout` of the deck spec.
 
-Valid field names: `front`, `back`, `context`, `example`, `extra`.
+Valid field names: `prompt`, `answer`, `context`, `example`, `extra`.
 
 A field may only appear on one side. The same field cannot be in both `front_layout` and `back_layout`.

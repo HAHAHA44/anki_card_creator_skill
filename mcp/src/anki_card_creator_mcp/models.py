@@ -4,8 +4,8 @@ from dataclasses import dataclass
 @dataclass
 class CardRow:
     id: str
-    front: str
-    back: str
+    prompt: str
+    answer: str
     context: str = ""
     example: str = ""
     extra: str = ""
@@ -19,5 +19,4 @@ class DeckSpec:
     output_file: str
     front_layout: list[str]
     back_layout: list[str]
-    generation_notes: str
     cards: list[CardRow]

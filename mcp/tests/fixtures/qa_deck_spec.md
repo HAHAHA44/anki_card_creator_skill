@@ -6,12 +6,11 @@
 - output_file: planetary-motion-qa.apkg
 
 ## Card Layout
-- front_layout: context, front, example
-- back_layout: back, extra
-- generation_notes: Focus on precise astronomy recall.
+- front_layout: context, prompt, example
+- back_layout: answer, extra
 
 ## Cards
-| id | front | back | context | example | extra | tags |
+| id | prompt | answer | context | example | extra | tags |
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | What force keeps planets in orbit around the Sun? | Gravity. | Astronomy: Orbital Mechanics |  | Specifically the Sun's gravitational attraction. | astronomy,orbit |
 | 2 | Why do planets move faster when they are closer to the Sun? | Because conserving angular momentum leads to higher orbital speed near perihelion. | Astronomy: Orbital Mechanics | This pattern appears in elliptical orbits. | Related to Kepler's second law. | astronomy,kepler |

@@ -5,17 +5,42 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "anki-card-creator-mcp"
 version = "0.1.0"
-description = "MCP server for generating Anki apkg files from markdown specs"
+description = "MCP server for generating Anki .apkg files from Markdown or JSON deck specs"
+readme = "README.md"
+license = { file = "../LICENSE" }
 requires-python = ">=3.11"
-dependencies = [
-  "genanki",
-  "mcp",
+keywords = ["anki", "mcp", "flashcard", "spaced-repetition"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Education",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Education",
 ]
+dependencies = [
+  "genanki>=0.13",
+  "mcp>=1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/YOUR_USERNAME/anki-card-creator"
+Repository = "https://github.com/YOUR_USERNAME/anki-card-creator"
+Issues = "https://github.com/YOUR_USERNAME/anki-card-creator/issues"
+
+[project.scripts]
+anki-card-creator-mcp = "anki_card_creator_mcp.server:main"
+anki-card-packager = "anki_card_creator_mcp.cli:main"
 
 [project.optional-dependencies]
 dev = [
-  "pytest",
+  "pytest>=8.0",
 ]
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
