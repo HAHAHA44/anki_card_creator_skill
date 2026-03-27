@@ -7,7 +7,7 @@ description: Use when creating Anki decks from a topic/domain or from source tex
 
 ## Overview
 
-Create Anki decks through a review-first workflow. Draft a fixed-format `deck-spec.md`, show the layout inline so the user can see how fields map to card sides, let the user edit the Markdown, and package via MCP once the user signals readiness.
+Create Anki decks through a review-first workflow. Draft or continue a fixed-format `deck-spec.md`, show the layout inline so the user can see how fields map to card sides, lock the card field convention with 3-5 sample rows, let the user edit the Markdown, and package via MCP once the user signals readiness.
 
 ## Required Inputs
 
@@ -28,18 +28,29 @@ The user gives a subject area. Generate a candidate vocabulary or concept set fo
 2. `extract`
 The user provides source text. Extract candidate vocabulary or question-answer items from that text.
 
+If the provided source is already a Markdown deck spec file that matches the deck-spec contract, still treat it as `extract`. In that case:
+
+- detect that the input is already a spec file
+- read that spec instead of regenerating hidden intermediate state
+- continue the normal review-first workflow from the current spec
+- keep the current spec as the single source of truth
+
 ## Required Workflow
 
 Follow this exact order:
 
 1. Identify whether the request is `domain` or `extract`.
 2. Infer `deck_name` from the request; confirm only if genuinely ambiguous.
-3. Draft a fixed-format Markdown deck spec using the default layout. Show the ASCII layout preview from [references/layout-preview.md](references/layout-preview.md) above the fenced spec block so the user can see how fields map to card sides before editing.
-4. Present the Markdown deck spec as the editable source of truth. The layout is visible in `## Card Layout` — users can move fields by editing those lines directly.
-5. Let the user revise metadata, layout, and card rows directly in Markdown.
-6. Once the user signals readiness — explicitly ("package it", "generate", "go ahead") or contextually ("looks good", "that's fine") — re-read the current Markdown deck spec and route packaging through MCP if available, otherwise through the CLI fallback skill.
+3. Establish the card field convention before full-spec drafting. Show 3-5 representative sample rows using the same column structure as `## Cards`, and make sure each column is vertically consistent across the examples.
+4. Ask the user to confirm or revise those examples. Users may adjust the example contents through conversation before the full spec is generated.
+5. Lock the agreed convention from those examples and generate or continue the fixed-format Markdown deck spec using that convention. Show the ASCII layout preview from [references/layout-preview.md](references/layout-preview.md) above the fenced spec block so the user can see how fields map to card sides before editing.
+6. Perform a consistency pass on the generated spec before presenting it: confirm every card follows the agreed example convention, especially that `prompt` and `answer` are directionally consistent across all rows.
+7. Present the Markdown deck spec as the editable source of truth. The layout is visible in `## Card Layout` - users can move fields by editing those lines directly.
+8. Let the user revise metadata, layout, and card rows directly in Markdown.
+9. Once the user signals readiness - explicitly ("package it", "generate", "go ahead") or contextually ("looks good", "that's fine") - re-read the current Markdown deck spec and route packaging through MCP if available, otherwise through the CLI fallback skill.
 
 Never skip the Markdown review phase. Never generate the `.apkg` from hidden intermediate state.
+Never skip the example-confirmation step before drafting a new full spec from extracted content.
 
 ## Layout Presentation
 
@@ -63,6 +74,25 @@ The Markdown deck spec is the single source of truth:
 - the user edits it directly
 - you read it when continuing the workflow
 - the MCP packages only from it
+
+If the user provides an existing deck spec file, that file becomes the starting source of truth immediately. Do not rewrite it from scratch unless the user asks.
+
+## Example Convention Checkpoint
+
+Before generating a new full spec from extracted content:
+
+- show 3-5 sample rows using the same columns and order as `## Cards`
+- use representative rows, not placeholders
+- make the examples vertically consistent by column
+- explicitly sanity-check column direction, such as whether `prompt` is always English and `answer` is always Chinese
+- let the user revise the sample rows in conversation before drafting the full spec
+
+Treat the approved sample rows as the output contract for the full spec:
+
+- all later rows must follow the same field direction and content pattern
+- do not flip `prompt` and `answer` in later rows
+- do not mix multiple conventions in one deck unless the user explicitly requests it
+- if the user changes the examples, regenerate or revise the spec to match the updated convention
 
 ## Card Quality Rules
 
@@ -91,6 +121,19 @@ Each row in `## Cards` is one card. Use one shared table for all content types:
 Use `context`, `example`, `extra`, and `tags` only when they add signal.
 
 If the user wants to remove a card, delete the row. There is no enabled/disabled flag.
+
+When examples establish a language direction or mapping convention, preserve that convention for every row in the table.
+
+## Consistency Check
+
+After generating or revising the spec, run a self-check before presenting completion or packaging:
+
+- confirm all `prompt` values follow the same agreed direction and format
+- confirm all `answer` values follow the same agreed direction and format
+- confirm `prompt` and `answer` stay aligned with the approved sample-row convention
+- fix mismatched rows before presenting the spec as ready
+
+If the deck intentionally mixes conventions, state that explicitly and tie each variation back to the user's instruction.
 
 ## Packaging Handoff
 

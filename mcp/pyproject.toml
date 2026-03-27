@@ -7,7 +7,7 @@ name = "anki-card-creator-mcp"
 version = "0.1.0"
 description = "MCP server for generating Anki .apkg files from Markdown or JSON deck specs"
 readme = "README.md"
-license = { file = "../LICENSE" }
+license = { file = "LICENSE" }
 requires-python = ">=3.11"
 keywords = ["anki", "mcp", "flashcard", "spaced-repetition"]
 classifiers = [

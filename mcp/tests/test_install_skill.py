@@ -15,3 +15,8 @@ def test_install_skill_copies_skill_tree(tmp_path: Path) -> None:
     assert installed_path.exists()
     assert (installed_path / "SKILL.md").exists()
     assert (installed_path / "agents" / "openai.yaml").exists()
+
+
+def test_skill_markdown_is_ascii_compatible() -> None:
+    skill_bytes = Path("skill/anki-card-creator/SKILL.md").read_bytes()
+    assert all(byte < 128 for byte in skill_bytes)
