@@ -19,7 +19,7 @@ uv add anki-card-creator-mcp
 After installation, register the server with Claude:
 
 ```bash
-claude mcp add anki-card-creator -- uvx anki-card-creator-mcp
+claude mcp add ankiCardCreator -- uvx anki-card-creator-mcp
 ```
 
 This exposes two tools in Claude:

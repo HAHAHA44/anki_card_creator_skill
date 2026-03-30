@@ -1,6 +1,6 @@
 # Anki Card Creator Skill
 
-A Codex skill that drafts an editable Markdown deck spec and packages it into an `.apkg` file via MCP.
+A Codex or Claude Code skill that drafts an editable Markdown deck spec and packages it into an `.apkg` file via MCP.
 
 The workflow is review-first: draft `deck-spec.md`, let the user edit it, then generate the final deck only after the user signals readiness.
 
@@ -10,6 +10,8 @@ The workflow is review-first: draft `deck-spec.md`, let the user edit it, then g
   the installable skill source
 - `mcp/`
   the parsing, validation, and packaging implementation exposed as an MCP server
+- `install.sh`
+  installs the skill and MCP wiring for Codex, Claude Code, or both
 - `scripts/install_skill.py`
   copies the local skill into a Codex skills directory
 - `docs/`
@@ -42,6 +44,18 @@ Install the skill locally:
 python scripts/install_skill.py --source skill/anki-card-creator --dest ~/.codex/skills --name anki-card-creator
 ```
 
+Install the skill and MCP runtime for both Codex and Claude Code:
+
+```bash
+bash ./install.sh --target both --scope user
+```
+
+Install project-local guidance and Claude project MCP wiring for the current repo:
+
+```bash
+bash ./install.sh --target both --scope project --project-dir .
+```
+
 Validate the skill structure:
 
 ```powershell
@@ -61,5 +75,8 @@ python "C:\Users\27391\.codex\skills\.system\skill-creator\scripts\quick_validat
 
 - `docs/project-structure.md`
 - `docs/contributing.md`
+- `docs/install-prompts.md`
 - `docs/superpowers/specs/2026-03-26-anki-card-creator-design.md`
+- `docs/superpowers/specs/2026-03-29-cross-agent-installer-design.md`
 - `docs/superpowers/plans/2026-03-26-anki-card-creator-implementation.md`
+- `docs/superpowers/plans/2026-03-29-cross-agent-installer-implementation.md`

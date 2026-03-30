@@ -14,6 +14,7 @@ htmlcov/
 .venv/
 venv/
 .python-version
+.anki-card-creator/
 
 # Build and packaging artifacts
 build/
