@@ -3,8 +3,8 @@ from pathlib import Path
 
 import genanki
 
-from anki_card_creator_mcp.card_models import get_note_model
-from anki_card_creator_mcp.models import DeckSpec
+from card_models import get_note_model
+from models import DeckSpec
 
 
 def build_apkg(spec: DeckSpec, output_dir: Path) -> Path:

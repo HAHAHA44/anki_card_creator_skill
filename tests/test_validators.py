@@ -1,5 +1,5 @@
-from anki_card_creator_mcp.models import CardRow, DeckSpec
-from anki_card_creator_mcp.validators import validate_deck_spec
+from models import CardRow, DeckSpec
+from validators import validate_deck_spec
 
 
 def make_spec(**overrides: object) -> DeckSpec:

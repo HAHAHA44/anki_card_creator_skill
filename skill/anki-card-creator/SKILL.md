@@ -80,7 +80,7 @@ Follow this exact order:
 8. Perform a consistency pass on the generated spec before presenting it: confirm every card follows the agreed example convention, especially that `prompt` and `answer` are directionally consistent across all rows.
 9. Present the Markdown deck spec as the editable source of truth. The layout is visible in `## Card Layout` - users can move fields by editing those lines directly.
 10. Let the user revise metadata, layout, and card rows directly in Markdown.
-11. Once the user signals readiness - explicitly ("package it", "generate", "go ahead") or contextually ("looks good", "that's fine") - re-read the current Markdown deck spec and route packaging through MCP if available, otherwise through the CLI fallback skill.
+11. Once the user signals readiness - explicitly ("package it", "generate", "go ahead") or contextually ("looks good", "that's fine") - re-read the current Markdown deck spec and run `~/.anki-card-creator/bin/build-apkg` via the Bash tool.
 
 Never skip the Markdown review phase. Never generate the `.apkg` from hidden intermediate state.
 Never skip the example-confirmation step before drafting a new full spec from extracted content.
@@ -112,7 +112,7 @@ The Markdown deck spec is the single source of truth:
 
 - the user edits it directly
 - you read it when continuing the workflow
-- the MCP packages only from it
+- the packager reads only from it
 
 If the user provides an existing deck spec file, that file becomes the starting source of truth immediately. Do not rewrite it from scratch unless the user asks.
 
@@ -151,7 +151,7 @@ When drafting or revising cards:
 - rewrite or split ambiguous cards before packaging
 - for bilingual study decks, make `example` and `extra` teach the term rather than merely restate it
 
-If a candidate card violates these rules, fix it before calling the MCP.
+If a candidate card violates these rules, fix it before packaging.
 
 ## Card Table Guidance
 
@@ -192,14 +192,17 @@ If the deck intentionally mixes conventions, state that explicitly and tie each 
 
 ## Packaging Handoff
 
-Once the user signals readiness, re-read the current Markdown deck spec and call `mcp__ankiCardCreator__build_apkg_from_spec` with:
+Once the user signals readiness, re-read the current Markdown deck spec and use the Bash tool to run:
 
-- path to the Markdown deck spec
-- optional output directory if the user requests a specific location
+```bash
+~/.anki-card-creator/bin/build-apkg <spec_path> [--output-dir <dir>]
+```
 
-If the MCP tool is not available in the current session, tell the user that the MCP server needs to be registered before packaging can proceed.
+The command writes JSON to stdout: `{"ok": true|false, "errors": [...], "output_path": "..."}`.
 
-If validation fails, surface the returned errors to the user and continue editing the Markdown spec instead of trying to guess a fix silently.
+- On success (`ok: true`): report the output path to the user.
+- On failure (`ok: false`): surface the `errors` list to the user and continue editing the Markdown spec. Do not attempt to guess a fix silently.
+- If `~/.anki-card-creator/bin/build-apkg` is not found: tell the user to run `bash install.sh` from the skill repository first.
 
 ## Output Discipline
 

@@ -1,9 +1,9 @@
 from pathlib import Path
 
-from anki_card_creator_mcp.apkg_builder import build_apkg
-from anki_card_creator_mcp.markdown_parser import parse_deck_spec
-from anki_card_creator_mcp.models import CardRow, DeckSpec
-from anki_card_creator_mcp.validators import validate_deck_spec
+from apkg_builder import build_apkg
+from markdown_parser import parse_deck_spec
+from models import CardRow, DeckSpec
+from validators import validate_deck_spec
 
 
 def build_apkg_from_markdown(spec_path: Path, output_dir: Path | None = None) -> dict[str, object]:

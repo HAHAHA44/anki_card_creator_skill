@@ -106,7 +106,7 @@ Expected skill behavior:
 - [ ] Continue the normal review-first workflow from that spec
 - [ ] Do not regenerate the deck from hidden intermediate state
 
-### Scenario 7: Approved Deck Uses MCP When MCP Tool Is Available
+### Scenario 7: Approved Deck Runs Build Script
 
 Prompt pattern:
 
@@ -117,9 +117,8 @@ The current Markdown deck spec is approved. Generate the final deck.
 Expected skill behavior:
 
 - [ ] Confirm the current Markdown deck spec is the approved source of truth
-- [ ] Check whether `mcp__ankiCardCreator__build_apkg_from_spec` is available
-- [ ] Call MCP when the tool is available
-- [ ] Pass `spec_path` and optional `output_dir` to MCP
+- [ ] Run `~/.anki-card-creator/bin/build-apkg <spec_path>` via the Bash tool
+- [ ] Report the output path on success
 - [ ] Surface validation errors back into the Markdown editing loop if packaging fails
 
 ## GREEN Phase Manual Validation

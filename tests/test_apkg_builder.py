@@ -1,11 +1,11 @@
 from pathlib import Path
 
-from anki_card_creator_mcp.apkg_builder import build_apkg
-from anki_card_creator_mcp.markdown_parser import parse_deck_spec
+from apkg_builder import build_apkg
+from markdown_parser import parse_deck_spec
 
 
 def test_build_apkg_writes_output_file(tmp_path: Path) -> None:
-    spec = parse_deck_spec(Path("mcp/tests/fixtures/minimal_deck_spec.md"))
+    spec = parse_deck_spec(Path("tests/fixtures/minimal_deck_spec.md"))
 
     output_path = build_apkg(spec, tmp_path)
 

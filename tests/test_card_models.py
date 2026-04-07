@@ -1,4 +1,4 @@
-from anki_card_creator_mcp.card_models import get_note_model
+from card_models import get_note_model
 
 
 def test_example_on_front_when_in_front_layout() -> None:

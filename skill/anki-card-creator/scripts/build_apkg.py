@@ -1,12 +1,24 @@
+#!/usr/bin/env python3
+"""Validate a Markdown deck spec and build an Anki .apkg file.
+
+Usage:
+    python build_apkg.py <spec_path> [--output-dir <dir>]
+
+Output (stdout): JSON object with keys ok, errors, output_path.
+Exit code: 0 on success, 1 on validation or build failure.
+"""
 import argparse
 import json
 import sys
 from pathlib import Path
 
-from anki_card_creator_mcp.service import build_apkg_from_markdown
+# Allow importing sibling modules without package installation.
+sys.path.insert(0, str(Path(__file__).parent))
+
+from service import build_apkg_from_markdown  # noqa: E402
 
 
-def build_parser() -> argparse.ArgumentParser:
+def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description="Validate a Markdown deck spec and build an Anki .apkg file."
     )
@@ -19,7 +31,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main() -> None:
-    parser = build_parser()
+    parser = _build_parser()
     args = parser.parse_args()
 
     result = build_apkg_from_markdown(

@@ -4,10 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-A hybrid Anki card generation system split into two coordinated layers:
+An Anki card generation system split into two coordinated layers:
 
-1. **Codex Skill** (`skill/anki-card-creator/`) — guides users to draft an editable Markdown deck spec
-2. **Python MCP + CLI Fallback** (`mcp/`) — validates the spec and generates `.apkg` files using `genanki`
+1. **Skill** (`skill/anki-card-creator/`) — guides users to draft an editable Markdown deck spec; contains the Python packager scripts under `scripts/`
+2. **Installer** (`install.sh`) — provisions a Python venv with `genanki` and creates a `~/.anki-card-creator/bin/build-apkg` wrapper
 
 The workflow is always review-first: draft `deck-spec.md` → user edits → user approves → package.
 
@@ -17,22 +17,22 @@ All commands below use forward slashes (Linux/WSL). The project runs in WSL but 
 
 **Run tests:**
 ```bash
-python -m pytest mcp/tests -q
+python -m pytest tests -q
 ```
 
-**Run a single test file:**
+**Run the packager directly:**
 ```bash
-python -m pytest mcp/tests/test_validators.py -q
+~/.anki-card-creator/bin/build-apkg tests/fixtures/qa_deck_spec.md --output-dir tests/output
 ```
 
-**Run the CLI directly (set PYTHONPATH first):**
+**Run the script without the wrapper (set PYTHONPATH for venv first):**
 ```bash
-PYTHONPATH=mcp/src python -m anki_card_creator_mcp.cli mcp/tests/fixtures/qa_deck_spec.md --output-dir mcp/tests/output
+~/.anki-card-creator/runtime/venv/bin/python skill/anki-card-creator/scripts/build_apkg.py tests/fixtures/qa_deck_spec.md
 ```
 
-**Install skill locally:**
+**Install:**
 ```bash
-python scripts/install_skill.py --source skill/anki-card-creator --dest ~/.codex/skills --name anki-card-creator
+bash install.sh
 ```
 
 ## Architecture
@@ -47,37 +47,40 @@ Skill (user interaction)
   → user edits Markdown
   → user signals readiness
 
-MCP (packaging)
+Scripts (packaging)
   → parses Markdown → DeckSpec dataclass  (markdown_parser.py)
   → validates fields and card rows         (validators.py)
   → builds genanki Note models             (card_models.py)
   → writes .apkg                           (apkg_builder.py)
   → returns {ok, errors, output_path}      (service.py)
+  → CLI entry point                        (build_apkg.py)
 ```
 
-### MCP Source (`mcp/src/anki_card_creator_mcp/`)
+### Scripts Source (`skill/anki-card-creator/scripts/`)
 
 | File | Role |
 |------|------|
+| `build_apkg.py` | CLI entry point: argparse wrapper, prints JSON result |
+| `service.py` | Orchestration: parse → validate → build |
 | `models.py` | `CardRow` and `DeckSpec` dataclasses |
 | `markdown_parser.py` | Parses Markdown → `DeckSpec` |
 | `validators.py` | Returns list of error strings |
 | `card_styles.py` | CSS variants |
 | `card_models.py` | `genanki` note-model definitions with layout support |
 | `apkg_builder.py` | Builds `.apkg`; stable deck IDs via name hash |
-| `service.py` | Entry point: `build_apkg_from_markdown(spec_path, output_dir)` |
-| `server.py` | Thin MCP wrapper (keep thin) |
-| `cli.py` | Thin argparse wrapper (keep thin) |
+| `requirements.txt` | Python dependencies (`genanki`) |
+
+`build_apkg.py` adds its own directory to `sys.path` so all sibling modules are importable without package installation.
 
 ### Card Field Architecture
 
-All cards have exactly 5 fields: `Front`, `Back`, `Context`, `Example`, `Extra`. Fields are always stored even if empty. Layout (which fields appear where) is configured per-deck in the Markdown spec.
+All cards have exactly 5 fields: `Prompt`, `Answer`, `Context`, `Example`, `Extra`. Fields are always stored even if empty. Layout (which fields appear where) is configured per-deck in the Markdown spec.
 
 ## Key Rules (from `docs/contributing.md`)
 
 - **Never bypass the Markdown review stage** in the skill workflow
 - **Never add hidden state** outside the Markdown deck spec
-- **Keep `server.py` and `cli.py` thin** — logic belongs in `service.py`
+- **Keep `build_apkg.py` thin** — logic belongs in `service.py`
 - **Keep the Markdown contract synchronized**: any change to the spec format must update `markdown_parser.py`, `validators.py`, `assets/deck-spec-template.md`, `references/markdown-spec.md`, and `skill/anki-card-creator/SKILL.md` together
 
 ## Key Reference Files
@@ -85,4 +88,4 @@ All cards have exactly 5 fields: `Front`, `Back`, `Context`, `Example`, `Extra`.
 - `skill/anki-card-creator/references/markdown-spec.md` — fixed Markdown contract
 - `skill/anki-card-creator/references/precise-card-rules.md` — card drafting constraints
 - `skill/anki-card-creator/assets/deck-spec-template.md` — editable template shown to users
-- `mcp/tests/fixtures/` — test deck specs (minimal and QA variants)
+- `tests/fixtures/` — test deck specs (minimal and QA variants)

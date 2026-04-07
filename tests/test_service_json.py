@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from anki_card_creator_mcp.service import build_apkg_from_dict
+from service import build_apkg_from_dict
 
 
 MINIMAL_SPEC = {

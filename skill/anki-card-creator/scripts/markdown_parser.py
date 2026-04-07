@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from anki_card_creator_mcp.models import CardRow, DeckSpec
+from models import CardRow, DeckSpec
 
 
 REQUIRED_HEADINGS = (

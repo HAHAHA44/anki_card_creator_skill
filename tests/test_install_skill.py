@@ -15,6 +15,7 @@ def test_install_skill_copies_skill_tree(tmp_path: Path) -> None:
     assert installed_path.exists()
     assert (installed_path / "SKILL.md").exists()
     assert (installed_path / "agents" / "openai.yaml").exists()
+    assert (installed_path / "scripts" / "build_apkg.py").exists()
 
 
 def test_skill_markdown_is_ascii_compatible() -> None:

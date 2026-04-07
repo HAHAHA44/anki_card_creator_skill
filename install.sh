@@ -4,7 +4,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$SCRIPT_DIR"
 SKILL_NAME="anki-card-creator"
-SERVER_NAME="ankiCardCreator"
 TARGET="both"
 SCOPE="user"
 PROJECT_DIR="$PWD"
@@ -23,7 +22,6 @@ Options:
   --project-dir PATH           Project directory for project-scoped files. Default: current directory
   --home-dir PATH              Home directory override for user-scoped installs
   --python PATH                Python interpreter to use for runtime provisioning
-  --server-name NAME           MCP server name. Default: ankiCardCreator
   -h, --help                   Show this help text
 EOF
 }
@@ -83,61 +81,21 @@ create_runtime() {
   mkdir -p "$runtime_root/runtime"
   "$PYTHON_BIN" -m venv "$venv_dir"
   RUNTIME_PYTHON="$(find_runtime_python "$venv_dir")" || die "Unable to find the venv Python inside $venv_dir"
-  "$RUNTIME_PYTHON" -m pip install "$REPO_ROOT/mcp" >/dev/null
-  log "Provisioned MCP runtime at $venv_dir"
+  "$RUNTIME_PYTHON" -m pip install genanki >/dev/null
+  log "Provisioned runtime at $venv_dir"
 }
 
-command_available() {
-  local bin_name="$1"
-  if [[ "$bin_name" == */* ]]; then
-    [[ -f "$bin_name" ]]
-  else
-    command -v "$bin_name" >/dev/null 2>&1
-  fi
-}
-
-register_codex_mcp() {
-  if ! command_available "$CODEX_BIN"; then
-    warn "codex CLI was not found; skipped Codex MCP registration"
-    return 0
-  fi
-
-  if "$CODEX_BIN" mcp get "$SERVER_NAME" >/dev/null 2>&1; then
-    "$CODEX_BIN" mcp remove "$SERVER_NAME" >/dev/null 2>&1 || true
-  fi
-
-  "$CODEX_BIN" mcp add "$SERVER_NAME" -- "$RUNTIME_PYTHON" -m anki_card_creator_mcp.server
-  log "Registered Codex MCP server $SERVER_NAME"
-}
-
-register_claude_mcp() {
-  if ! command_available "$CLAUDE_BIN"; then
-    warn "claude CLI was not found; skipped Claude MCP registration"
-    return 0
-  fi
-
-  if "$CLAUDE_BIN" mcp get "$SERVER_NAME" >/dev/null 2>&1; then
-    "$CLAUDE_BIN" mcp remove "$SERVER_NAME" >/dev/null 2>&1 || true
-  fi
-
-  "$CLAUDE_BIN" mcp add "$SERVER_NAME" -- "$RUNTIME_PYTHON" -m anki_card_creator_mcp.server
-  log "Registered Claude MCP server $SERVER_NAME"
-}
-
-write_claude_project_mcp() {
-  local project_dir="$1"
-  local config_path="$project_dir/.mcp.json"
-  cat > "$config_path" <<EOF
-{
-  "mcpServers": {
-    "$SERVER_NAME": {
-      "command": "$RUNTIME_PYTHON",
-      "args": ["-m", "anki_card_creator_mcp.server"]
-    }
-  }
-}
+create_bin_wrapper() {
+  local scripts_dir="$1"
+  local wrapper_dir="$RUNTIME_ROOT/bin"
+  local wrapper_path="$wrapper_dir/build-apkg"
+  mkdir -p "$wrapper_dir"
+  cat > "$wrapper_path" <<EOF
+#!/usr/bin/env bash
+exec "$RUNTIME_PYTHON" "$scripts_dir/build_apkg.py" "\$@"
 EOF
-  log "Wrote Claude project MCP config to $config_path"
+  chmod +x "$wrapper_path"
+  log "Created wrapper at $wrapper_path"
 }
 
 upsert_managed_block() {
@@ -178,8 +136,8 @@ write_project_guidance() {
 ## anki-card-creator
 
 Use the project-local \`anki-card-creator\` skill for Anki deck drafting workflows.
-When the current \`deck-spec.md\` is approved, package through \`mcp__${SERVER_NAME}__build_apkg_from_spec\`.
-If a workflow already has a structured deck object instead of Markdown, use \`mcp__${SERVER_NAME}__build_apkg_from_json\`.
+When the current \`deck-spec.md\` is approved, package it by running:
+  ~/.anki-card-creator/bin/build-apkg <spec_path> [--output-dir <dir>]
 EOF
 )
 
@@ -188,7 +146,8 @@ EOF
 
 The project includes a local \`anki-card-creator\` skill under \`.codex/skills/${SKILL_NAME}\`.
 Prefer that skill for drafting and packaging Anki decks.
-When packaging an approved spec, use \`mcp__${SERVER_NAME}__build_apkg_from_spec\` or \`mcp__${SERVER_NAME}__build_apkg_from_json\`.
+When packaging an approved spec, run:
+  ~/.anki-card-creator/bin/build-apkg <spec_path> [--output-dir <dir>]
 EOF
 )
 
@@ -229,10 +188,6 @@ while [[ $# -gt 0 ]]; do
       PYTHON_BIN="${2:-}"
       shift 2
       ;;
-    --server-name)
-      SERVER_NAME="${2:-}"
-      shift 2
-      ;;
     -h|--help)
       usage
       exit 0
@@ -259,10 +214,6 @@ esac
 
 if [[ ! -d "$REPO_ROOT/skill/$SKILL_NAME" ]]; then
   die "Missing skill source at $REPO_ROOT/skill/$SKILL_NAME"
-fi
-
-if [[ ! -d "$REPO_ROOT/mcp" ]]; then
-  die "Missing MCP source at $REPO_ROOT/mcp"
 fi
 
 if [[ -z "$PYTHON_BIN" ]]; then
@@ -297,24 +248,19 @@ fi
 RUNTIME_ROOT="$INSTALL_ROOT/.anki-card-creator"
 create_runtime "$RUNTIME_ROOT"
 
+LAST_SCRIPTS_DIR=""
+
 if [[ "$TARGET" == "codex" || "$TARGET" == "both" ]]; then
-  if [[ "$SCOPE" == "user" ]]; then
-    copy_skill_tree "$INSTALL_ROOT/.codex/skills"
-  else
-    copy_skill_tree "$INSTALL_ROOT/.codex/skills"
-  fi
-  register_codex_mcp
+  copy_skill_tree "$INSTALL_ROOT/.codex/skills"
+  LAST_SCRIPTS_DIR="$INSTALL_ROOT/.codex/skills/$SKILL_NAME/scripts"
 fi
 
 if [[ "$TARGET" == "claude" || "$TARGET" == "both" ]]; then
-  if [[ "$SCOPE" == "user" ]]; then
-    copy_skill_tree "$INSTALL_ROOT/.claude/skills"
-    register_claude_mcp
-  else
-    copy_skill_tree "$INSTALL_ROOT/.claude/skills"
-    write_claude_project_mcp "$INSTALL_ROOT"
-  fi
+  copy_skill_tree "$INSTALL_ROOT/.claude/skills"
+  LAST_SCRIPTS_DIR="$INSTALL_ROOT/.claude/skills/$SKILL_NAME/scripts"
 fi
+
+create_bin_wrapper "$LAST_SCRIPTS_DIR"
 
 if [[ "$SCOPE" == "project" ]]; then
   write_project_guidance "$INSTALL_ROOT"
@@ -327,7 +273,7 @@ Install complete.
 - Target: $TARGET
 - Scope: $SCOPE
 - Runtime: $RUNTIME_ROOT/runtime/venv
-- MCP server name: $SERVER_NAME
+- Wrapper: $RUNTIME_ROOT/bin/build-apkg
 
 Restart Codex or Claude Code if they were already running.
 EOF

@@ -1,11 +1,11 @@
 from pathlib import Path
 
-from anki_card_creator_mcp.service import build_apkg_from_markdown
+from service import build_apkg_from_markdown
 
 
 def test_service_returns_success_payload(tmp_path: Path) -> None:
     result = build_apkg_from_markdown(
-        Path("mcp/tests/fixtures/minimal_deck_spec.md"),
+        Path("tests/fixtures/minimal_deck_spec.md"),
         tmp_path,
     )
 

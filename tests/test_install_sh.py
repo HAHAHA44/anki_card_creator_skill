@@ -1,7 +1,6 @@
 import os
 import stat
 import subprocess
-import sys
 from pathlib import Path
 
 
@@ -18,11 +17,7 @@ def _write_executable(path: Path, content: str) -> None:
     path.chmod(path.stat().st_mode | stat.S_IEXEC)
 
 
-def _make_fake_python(
-    bin_dir: Path,
-    fake_python_log: str,
-    fake_runtime_python_log: str,
-) -> Path:
+def _make_fake_python(bin_dir: Path, fake_runtime_python_log: str) -> Path:
     fake_python = bin_dir / "python"
     script = r"""#!/usr/bin/env bash
 set -euo pipefail
@@ -45,71 +40,30 @@ EOF
 fi
 
 if [[ "${1:-}" == "-m" && "${2:-}" == "pip" ]]; then
-  printf '%s\n' "$*" >> "__FAKE_PYTHON_LOG__"
   exit 0
 fi
 
 echo "unexpected fake python args: $*" >&2
 exit 1
 """
-    script = script.replace("__FAKE_PYTHON_LOG__", fake_python_log)
     script = script.replace("__FAKE_RUNTIME_PYTHON_LOG__", fake_runtime_python_log)
-    _write_executable(
-        fake_python,
-        script,
-    )
+    _write_executable(fake_python, script)
     return fake_python
-
-
-def _make_fake_cli(bin_dir: Path, name: str, log_path: str) -> None:
-    _write_executable(
-        bin_dir / name,
-        f"""#!/usr/bin/env bash
-set -euo pipefail
-printf '%s\\n' "$*" >> "{log_path}"
-if [[ "${{1:-}}" == "mcp" && "${{2:-}}" == "get" ]]; then
-  exit 1
-fi
-exit 0
-""",
-    )
 
 
 def _run_install(
     *args: str,
     home: Path,
-    env_extra: dict[str, str] | None = None,
 ) -> subprocess.CompletedProcess[str]:
-    repo_root = Path(__file__).resolve().parents[2]
+    repo_root = Path(__file__).resolve().parents[1]
     bin_dir = home / "bin"
     bin_dir.mkdir(parents=True, exist_ok=True)
 
-    fake_python_log = home / "fake-python.log"
     fake_runtime_python_log = home / "fake-runtime-python.log"
-    fake_codex_log = home / "fake-codex.log"
-    fake_claude_log = home / "fake-claude.log"
-
-    fake_python = _make_fake_python(
-        bin_dir,
-        _to_bash_path(fake_python_log),
-        _to_bash_path(fake_runtime_python_log),
-    )
-    fake_codex = bin_dir / "codex"
-    fake_claude = bin_dir / "claude"
-    _make_fake_cli(bin_dir, "codex", _to_bash_path(fake_codex_log))
-    _make_fake_cli(bin_dir, "claude", _to_bash_path(fake_claude_log))
+    fake_python = _make_fake_python(bin_dir, _to_bash_path(fake_runtime_python_log))
 
     env = os.environ.copy()
-    env.update(
-        {
-            "HOME": _to_bash_path(home),
-            "PATH": "/usr/bin:/bin",
-            "CODEX_BIN": _to_bash_path(fake_codex),
-            "CLAUDE_BIN": _to_bash_path(fake_claude),
-        }
-    )
-    if env_extra:
-        env.update(env_extra)
+    env.update({"HOME": _to_bash_path(home), "PATH": "/usr/bin:/bin"})
 
     bash_args = list(args)
     if "--project-dir" in bash_args:
@@ -136,7 +90,7 @@ def _run_install(
     )
 
 
-def test_install_sh_user_scope_installs_skills_and_registers_mcp(tmp_path: Path) -> None:
+def test_install_sh_user_scope_installs_skill_and_creates_wrapper(tmp_path: Path) -> None:
     home = tmp_path / "home"
     home.mkdir()
 
@@ -146,10 +100,10 @@ def test_install_sh_user_scope_installs_skills_and_registers_mcp(tmp_path: Path)
     assert (home / ".codex" / "skills" / "anki-card-creator" / "SKILL.md").exists()
     assert (home / ".claude" / "skills" / "anki-card-creator" / "SKILL.md").exists()
     assert (home / ".anki-card-creator" / "runtime" / "venv" / "bin" / "python").exists()
+    assert (home / ".anki-card-creator" / "bin" / "build-apkg").exists()
 
     runtime_log = (home / "fake-runtime-python.log").read_text(encoding="utf-8")
-
-    assert "-m pip install" in runtime_log
+    assert "-m pip install genanki" in runtime_log
 
 
 def test_install_sh_project_scope_writes_project_files(tmp_path: Path) -> None:
@@ -171,13 +125,23 @@ def test_install_sh_project_scope_writes_project_files(tmp_path: Path) -> None:
     assert result.returncode == 0, result.stderr
     assert (project_dir / ".claude" / "skills" / "anki-card-creator" / "SKILL.md").exists()
     assert (project_dir / ".codex" / "skills" / "anki-card-creator" / "SKILL.md").exists()
-    assert (project_dir / ".mcp.json").exists()
     assert (project_dir / "CLAUDE.md").exists()
     assert (project_dir / "AGENTS.md").exists()
 
-    mcp_json = (project_dir / ".mcp.json").read_text(encoding="utf-8")
     claude_md = (project_dir / "CLAUDE.md").read_text(encoding="utf-8")
     agents_md = (project_dir / "AGENTS.md").read_text(encoding="utf-8")
-    assert "ankiCardCreator" in mcp_json
-    assert "mcp__ankiCardCreator__build_apkg_from_spec" in claude_md
-    assert "mcp__ankiCardCreator__build_apkg_from_json" in agents_md
+    assert "build-apkg" in claude_md
+    assert "build-apkg" in agents_md
+
+
+def test_install_sh_scripts_included_in_skill_copy(tmp_path: Path) -> None:
+    home = tmp_path / "home"
+    home.mkdir()
+
+    result = _run_install("--target", "claude", "--scope", "user", home=home)
+
+    assert result.returncode == 0, result.stderr
+    scripts_dir = home / ".claude" / "skills" / "anki-card-creator" / "scripts"
+    assert (scripts_dir / "build_apkg.py").exists()
+    assert (scripts_dir / "service.py").exists()
+    assert (scripts_dir / "models.py").exists()

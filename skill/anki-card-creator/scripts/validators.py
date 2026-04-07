@@ -1,4 +1,4 @@
-from anki_card_creator_mcp.models import DeckSpec
+from models import DeckSpec
 
 
 VALID_SOURCE_MODES = {"domain", "extract"}
