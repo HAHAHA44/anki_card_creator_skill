@@ -1,19 +1,19 @@
 # Anki Card Creator Skill
 
-A Codex or Claude Code skill that drafts an editable Markdown deck spec and packages it into an `.apkg` file via MCP.
+A Codex or Claude Code skill that drafts an editable Markdown deck spec and packages it into an `.apkg` file via a bundled Python script.
 
 The workflow is review-first: draft `deck-spec.md`, let the user edit it, then generate the final deck only after the user signals readiness.
 
 ## What This Repository Contains
 
 - `skill/anki-card-creator/`
-  the installable skill source
-- `mcp/`
-  the parsing, validation, and packaging implementation exposed as an MCP server
+  the installable skill source, including the Python packager scripts under `scripts/`
 - `install.sh`
-  installs the skill and MCP wiring for Codex, Claude Code, or both
+  provisions a Python venv with `genanki` and creates a `~/.anki-card-creator/bin/build-apkg` wrapper
 - `scripts/install_skill.py`
-  copies the local skill into a Codex skills directory
+  copies the local skill into a skills directory
+- `tests/`
+  unit and end-to-end tests plus Markdown fixtures
 - `docs/`
   design, planning, structure, and contribution docs
 
@@ -22,44 +22,38 @@ The workflow is review-first: draft `deck-spec.md`, let the user edit it, then g
 1. Start from one of two inputs: `domain` or `extract`
 2. Draft a fixed-format Markdown deck spec with the default layout shown inline
 3. Let the user revise the Markdown directly
-4. Validate and package via MCP once the user signals readiness
+4. Run the build script once the user signals readiness
 
 ## Quick Start
 
-Run tests:
-
-```bash
-python -m pytest mcp/tests -q
-```
-
-Run the local CLI directly:
-
-```bash
-PYTHONPATH=mcp/src python -m anki_card_creator_mcp.cli mcp/tests/fixtures/qa_deck_spec.md --output-dir mcp/tests/output
-```
-
-Install the skill locally:
-
-```bash
-python scripts/install_skill.py --source skill/anki-card-creator --dest ~/.codex/skills --name anki-card-creator
-```
-
-Install the skill and MCP runtime for both Codex and Claude Code:
+Install the skill and runtime for both Codex and Claude Code:
 
 ```bash
 bash ./install.sh --target both --scope user
 ```
 
-Install project-local guidance and Claude project MCP wiring for the current repo:
+Install project-local guidance for the current repo:
 
 ```bash
 bash ./install.sh --target both --scope project --project-dir .
 ```
 
-Validate the skill structure:
+Run the packager directly after installing:
 
-```powershell
-python "C:\Users\27391\.codex\skills\.system\skill-creator\scripts\quick_validate.py" ".\skill\anki-card-creator"
+```bash
+~/.anki-card-creator/bin/build-apkg tests/fixtures/qa_deck_spec.md --output-dir /tmp
+```
+
+Run tests:
+
+```bash
+python -m pytest tests -q
+```
+
+Install the skill only (no runtime):
+
+```bash
+python scripts/install_skill.py --source skill/anki-card-creator --dest ~/.codex/skills --name anki-card-creator
 ```
 
 ## Key Files
@@ -68,8 +62,8 @@ python "C:\Users\27391\.codex\skills\.system\skill-creator\scripts\quick_validat
 - `skill/anki-card-creator/assets/deck-spec-template.md`
 - `skill/anki-card-creator/references/markdown-spec.md`
 - `skill/anki-card-creator/references/precise-card-rules.md`
-- `mcp/src/anki_card_creator_mcp/service.py`
-- `mcp/src/anki_card_creator_mcp/server.py`
+- `skill/anki-card-creator/scripts/build_apkg.py`
+- `skill/anki-card-creator/scripts/service.py`
 
 ## Additional Docs
 

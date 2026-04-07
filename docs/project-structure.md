@@ -5,9 +5,10 @@
 ```text
 Anki_Card_Creator_Skill/
   docs/
-  mcp/
   scripts/
   skill/
+  tests/
+  install.sh
   README.md
 ```
 
@@ -15,7 +16,7 @@ Anki_Card_Creator_Skill/
 
 ### `skill/`
 
-Contains the installable Codex skill source.
+Contains the installable skill source and the Python packager scripts.
 
 - `skill/anki-card-creator/SKILL.md`
   main skill instructions
@@ -29,40 +30,42 @@ Contains the installable Codex skill source.
   drafting constraints derived from the approved article
 - `skill/anki-card-creator/tests/acceptance-checklist.md`
   manual RED/GREEN validation record for the skill workflow
-
-### `mcp/`
-
-Contains the Python implementation of parsing, validation, and packaging exposed as an MCP server.
-
-- `mcp/pyproject.toml`
-  package metadata and dependencies
-- `mcp/src/anki_card_creator_mcp/models.py`
-  core dataclasses
-- `mcp/src/anki_card_creator_mcp/markdown_parser.py`
-  parses the Markdown deck spec
-- `mcp/src/anki_card_creator_mcp/validators.py`
-  validates deck metadata and rows
-- `mcp/src/anki_card_creator_mcp/card_styles.py`
+- `skill/anki-card-creator/scripts/build_apkg.py`
+  CLI entry point — parses arguments, prints JSON result, exits 1 on failure
+- `skill/anki-card-creator/scripts/service.py`
+  orchestration: parse → validate → build
+- `skill/anki-card-creator/scripts/models.py`
+  `CardRow` and `DeckSpec` dataclasses
+- `skill/anki-card-creator/scripts/markdown_parser.py`
+  parses the Markdown deck spec into a `DeckSpec`
+- `skill/anki-card-creator/scripts/validators.py`
+  validates deck metadata and card rows
+- `skill/anki-card-creator/scripts/card_styles.py`
   CSS variants for card presentation
-- `mcp/src/anki_card_creator_mcp/card_models.py`
+- `skill/anki-card-creator/scripts/card_models.py`
   `genanki` note-model definitions
-- `mcp/src/anki_card_creator_mcp/apkg_builder.py`
+- `skill/anki-card-creator/scripts/apkg_builder.py`
   builds `.apkg` files
-- `mcp/src/anki_card_creator_mcp/service.py`
-  high-level entry point used by callers and tests
-- `mcp/src/anki_card_creator_mcp/server.py`
-  thin MCP server wrapper
-- `mcp/src/anki_card_creator_mcp/cli.py`
-  thin CLI wrapper over the same service layer
-- `mcp/tests/`
-  unit and end-to-end tests plus Markdown fixtures
+- `skill/anki-card-creator/scripts/requirements.txt`
+  Python dependencies (`genanki`)
 
 ### `scripts/`
 
 Contains repo-local helper scripts.
 
 - `scripts/install_skill.py`
-  copies the local skill tree into a target Codex skills directory
+  copies the local skill tree into a target skills directory
+
+### `tests/`
+
+Contains unit and end-to-end tests plus Markdown fixtures.
+
+- `tests/fixtures/`
+  minimal and QA deck spec fixtures
+- `tests/conftest.py`
+  adds `skill/anki-card-creator/scripts/` to `sys.path`
+- `tests/test_*.py`
+  test files covering parser, validators, card models, builder, service, and CLI
 
 ### `docs/`
 
@@ -82,6 +85,6 @@ Contains design and maintenance documentation.
 The repository is intentionally split:
 
 - the skill owns user interaction and Markdown generation
-- the MCP layer owns deterministic validation and packaging
+- the scripts layer owns deterministic validation and packaging
 
-Do not move deck-generation conversation logic into the MCP layer.
+Do not move deck-generation conversation logic into the scripts layer.
